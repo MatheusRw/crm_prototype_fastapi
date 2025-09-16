@@ -150,7 +150,7 @@ def list_all_opportunities(
     return crud.list_all_opportunities(db, limit=limit, offset=offset)
 
 
-# ---- Users ----
+# ---- Lisstagem de Users ----
 @app.get("/users", response_model=List[schemas.UserOut])
 def list_users(
     limit: int = Query(default=100, ge=1, le=200),
