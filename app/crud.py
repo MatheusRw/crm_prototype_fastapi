@@ -127,3 +127,30 @@ def list_all_opportunities(db: Session, limit: int = 100, offset: int = 0):
 # Users
 def list_users(db: Session, limit: int = 100, offset: int = 0):
     return db.query(models.User).offset(offset).limit(limit).all()
+
+
+#Função para editar usuario e oportunidade
+
+
+
+# Função para atualizar um usuário
+def update_user(db: Session, db_user: models.User, user: schemas.UserCreate):
+    # Atualiza os atributos do objeto do banco de dados com os novos dados
+    for key, value in user.dict().items():
+        setattr(db_user, key, value)
+    
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+# Função para atualizar um cliente
+def update_customer(db: Session, db_customer: models.Customer, customer: schemas.CustomerCreate):
+    # Atualiza os atributos do objeto do banco de dados com os novos dados
+    for key, value in customer.dict().items():
+        setattr(db_customer, key, value)
+
+    db.add(db_customer)
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
