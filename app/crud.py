@@ -115,3 +115,15 @@ def create_user(db: Session, data: schemas.UserCreate):
     db.commit()
     db.refresh(user)
     return user
+
+
+#------- Criando as lista dos usuarios e das oportunidades
+
+# Opportunities
+def list_all_opportunities(db: Session, limit: int = 100, offset: int = 0):
+    return db.query(models.Opportunity).offset(offset).limit(limit).all()
+
+
+# Users
+def list_users(db: Session, limit: int = 100, offset: int = 0):
+    return db.query(models.User).offset(offset).limit(limit).all()

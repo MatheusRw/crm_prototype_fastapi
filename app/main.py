@@ -135,3 +135,26 @@ def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
 @app.post("/users", response_model=schemas.UserOut)
 def create_user_endpoint(payload: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, payload)
+
+
+
+#Cria os endpois para as listas de usuarios e oportunidades
+
+# ---- Opportunities (listagem geral) ----
+@app.get("/opportunities", response_model=List[schemas.OpportunityOut])
+def list_all_opportunities(
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db)
+):
+    return crud.list_all_opportunities(db, limit=limit, offset=offset)
+
+
+# ---- Users ----
+@app.get("/users", response_model=List[schemas.UserOut])
+def list_users(
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db)
+):
+    return crud.list_users(db, limit=limit, offset=offset)
