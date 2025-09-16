@@ -134,8 +134,11 @@ def list_users(db: Session, limit: int = 100, offset: int = 0):
 
 
 # Função para atualizar um usuário
-def update_user(db: Session, db_user: models.User, user: schemas.UserCreate):
-    # Atualiza os atributos do objeto do banco de dados com os novos dados
+def update_user(db: Session, user_id: int, user: schemas.UserCreate):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     for key, value in user.dict().items():
         setattr(db_user, key, value)
     
@@ -145,11 +148,14 @@ def update_user(db: Session, db_user: models.User, user: schemas.UserCreate):
     return db_user
 
 # Função para atualizar um cliente
-def update_customer(db: Session, db_customer: models.Customer, customer: schemas.CustomerCreate):
-    # Atualiza os atributos do objeto do banco de dados com os novos dados
+def update_customer(db: Session, customer_id: int, customer: schemas.CustomerCreate):
+    db_customer = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
+    if not db_customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
     for key, value in customer.dict().items():
         setattr(db_customer, key, value)
-
+    
     db.add(db_customer)
     db.commit()
     db.refresh(db_customer)
