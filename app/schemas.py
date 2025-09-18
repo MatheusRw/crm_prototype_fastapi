@@ -81,3 +81,17 @@ class UserOut(BaseModel):
     class Config:
         from_attributes = True
 
+#---Edita Usuario----
+
+
+class UserBase(BaseModel):
+    email: EmailStr
+    name: str
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    name: Optional[str] = None
+    password: Optional[str] = None  # se quiser permitir troca de senha

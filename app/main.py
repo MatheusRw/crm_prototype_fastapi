@@ -159,23 +159,26 @@ def list_users(
 ):
     return crud.list_users(db, limit=limit, offset=offset)
 
+# ---- Buscar um Usuário pelo ID ----
+@app.get("/users/{user_id}", response_model=schemas.UserOut)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = crud.get_user(db, user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return user
 
 
 
-# ---- Editar um Usuário ----
 @app.put("/users/{user_id}", response_model=schemas.UserOut)
 def update_user(
     user_id: int,
-    user: schemas.UserCreate,  # O esquema pode ser o UserCreate ou um novo UserUpdate
+    user: schemas.UserCreate,  # ideal seria um UserUpdate separado
     db: Session = Depends(get_db)
 ):
-    # Encontra o usuário no banco de dados pelo ID
-    db_user = crud.get_user(db, user_id=user_id)
-    if db_user is None:
+    updated = crud.update_user(db, user_id=user_id, user=user)
+    if not updated:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    # Chama a função CRUD para atualizar o usuário
-    return crud.update_user(db, db_user=db_user, user=user)
+    return updated
 
 # A mesma lógica para Customer
 # ---- Editar um Cliente ----
