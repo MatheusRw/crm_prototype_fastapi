@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
-from datetime import datetime
-from typing import Optional, Literal
+from datetime import datetime, date
+from typing import Optional
 from .models import OpportunityStage
 
 # ----- Customers -----
@@ -47,7 +47,7 @@ class OpportunityBase(BaseModel):
     title: str
     stage: OpportunityStage = OpportunityStage.new
     value: Optional[float] = None
-    close_date: Optional[datetime] = None
+    close_date: Optional[datetime] = None  # mantém datetime para consistência
 
 class OpportunityCreate(OpportunityBase):
     pass
@@ -66,27 +66,10 @@ class OpportunityOut(OpportunityBase):
     class Config:
         from_attributes = True
 
-
-# ----- Users  -----
-
-
-class UserCreate(BaseModel):
-    email: str
-    password: str
-
-class UserOut(BaseModel):
-    id: int
-    email: str
-
-    class Config:
-        from_attributes = True
-
-#---Edita Usuario----
-
-
+# ----- Users -----
 class UserBase(BaseModel):
     email: EmailStr
-    name: str
+    name: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str
@@ -94,4 +77,13 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     name: Optional[str] = None
-    password: Optional[str] = None  # se quiser permitir troca de senha
+    password: Optional[str] = None  # opcional para troca de senha
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    name: Optional[str] = None
+    created_at: Optional[datetime] = None  # só se existir no seu modelo
+
+    class Config:
+        from_attributes = True

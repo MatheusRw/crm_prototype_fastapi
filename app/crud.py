@@ -3,7 +3,6 @@ from sqlalchemy import select, desc
 from typing import Sequence, Optional
 from passlib.context import CryptContext
 
-
 from . import models, schemas
 
 # ----- Customers -----
@@ -29,16 +28,16 @@ def get_customer(db: Session, customer_id: int) -> Optional[models.Customer]:
     return db.get(models.Customer, customer_id)
 
 def update_customer(db: Session, customer_id: int, data: schemas.CustomerUpdate) -> Optional[models.Customer]:
-    customer = db.get(models.Customer, customer_id)
-    if not customer:
+    db_customer = db.get(models.Customer, customer_id)
+    if not db_customer:
         return None
     update_data = data.model_dump(exclude_unset=True)
     for k, v in update_data.items():
-        setattr(customer, k, v)
-    db.add(customer)
+        setattr(db_customer, k, v)
+    db.add(db_customer)
     db.commit()
-    db.refresh(customer)
-    return customer
+    db.refresh(db_customer)
+    return db_customer
 
 def delete_customer(db: Session, customer_id: int) -> bool:
     customer = db.get(models.Customer, customer_id)
@@ -84,7 +83,13 @@ def list_opportunities(db: Session, customer_id: int, limit: int = 100, offset: 
     ).limit(limit).offset(offset)
     return db.scalars(stmt).all()
 
-def update_opportunity(db: Session, opportunity_id: int, data: schemas.OpportunityUpdate):
+def list_all_opportunities(db: Session, limit: int = 100, offset: int = 0):
+    return db.query(models.Opportunity).order_by(desc(models.Opportunity.created_at)).offset(offset).limit(limit).all()
+
+def get_opportunity(db: Session, opportunity_id: int) -> Optional[models.Opportunity]:
+    return db.get(models.Opportunity, opportunity_id)
+
+def update_opportunity(db: Session, opportunity_id: int, data: schemas.OpportunityUpdate) -> Optional[models.Opportunity]:
     opp = db.get(models.Opportunity, opportunity_id)
     if not opp:
         return None
@@ -104,49 +109,47 @@ def delete_opportunity(db: Session, opportunity_id: int) -> bool:
     db.commit()
     return True
 
-# ----- Users  -----
-
+# ----- Users -----
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_user(db: Session, data: schemas.UserCreate):
+    # Verificar se usuário já existe
+    existing_user = db.query(models.User).filter(models.User.email == data.email).first()
+    if existing_user:
+        raise ValueError("Usuário com este email já existe")
+    
     hashed_password = pwd_context.hash(data.password)
-    user = models.User(email=data.email, hashed_password=hashed_password)
+    user = models.User(
+        email=data.email, 
+        hashed_password=hashed_password,
+        name=data.name if hasattr(data, 'name') else None
+    )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
 
-
-# ----- Users -----
+def list_users(db: Session, limit: int = 100, offset: int = 0):
+    return db.query(models.User).offset(offset).limit(limit).all()
 
 def get_user(db: Session, user_id: int) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.id == user_id).first()
 
+def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
+    return db.query(models.User).filter(models.User.email == email).first()
 
-
-#------- Criando as lista dos usuarios e das oportunidades
-
-# Opportunities
-def list_all_opportunities(db: Session, limit: int = 100, offset: int = 0):
-    return db.query(models.Opportunity).offset(offset).limit(limit).all()
-
-
-# Users
-def list_users(db: Session, limit: int = 100, offset: int = 0):
-    return db.query(models.User).offset(offset).limit(limit).all()
-
-
-
-
-
-#atualiza usuario 
-def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
+def update_user(db: Session, user_id: int, data: schemas.UserUpdate) -> Optional[models.User]:
     db_user = db.query(models.User).filter(models.User.id == user_id).first()
     if not db_user:
         return None
 
-    # Atualiza apenas os campos enviados
-    update_data = user.dict(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True)
+    
+    # Se houver password no update, hash it
+    if 'password' in update_data and update_data['password']:
+        update_data['hashed_password'] = pwd_context.hash(update_data['password'])
+        del update_data['password']
+    
     for key, value in update_data.items():
         setattr(db_user, key, value)
 
@@ -155,16 +158,13 @@ def update_user(db: Session, user_id: int, user: schemas.UserUpdate):
     db.refresh(db_user)
     return db_user
 
-# Função para atualizar um cliente
-def update_customer(db: Session, customer_id: int, customer: schemas.CustomerCreate):
-    db_customer = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
-    if not db_customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
-    
-    for key, value in customer.dict().items():
-        setattr(db_customer, key, value)
-    
-    db.add(db_customer)
+def delete_user(db: Session, user_id: int) -> bool:
+    user = db.get(models.User, user_id)
+    if not user:
+        return False
+    db.delete(user)
     db.commit()
-    db.refresh(db_customer)
-    return db_customer
+    return True
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
