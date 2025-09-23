@@ -2,9 +2,13 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from fastapi.security import OAuth2PasswordRequestForm
-from . import auth
-from .database import Base, engine, get_db
-from . import crud, schemas, models
+
+# CORREÇÃO: Remover importações relativas, usar absolutas
+import auth
+from database import Base, engine, get_db
+import crud
+import schemas
+import models
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="CRM Simples", version="0.1.0")
@@ -56,11 +60,11 @@ def get_customer(customer_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/customers/{customer_id}", response_model=schemas.CustomerOut)
-def update_customer(customer_id: int, payload: schemas.CustomerUpdate, db: Session = Depends(get_db)):  # ✅ Corrigido: CustomerUpdate
+def update_customer(customer_id: int, payload: schemas.CustomerUpdate, db: Session = Depends(get_db)):
     db_customer = crud.get_customer(db, customer_id)
     if not db_customer:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
-    return crud.update_customer(db, customer_id, payload)  # ✅ Corrigido: parâmetros
+    return crud.update_customer(db, customer_id, payload)
 
 
 @app.delete("/customers/{customer_id}", status_code=204)
@@ -164,8 +168,8 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/users/{user_id}", response_model=schemas.UserOut)
-def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)):  # ✅ Corrigido: UserUpdate
-    updated = crud.update_user(db, user_id, payload)  # ✅ Corrigido: parâmetros
+def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)):
+    updated = crud.update_user(db, user_id, payload)
     if not updated:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return updated
@@ -183,7 +187,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 # ============================================
 @app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = crud.get_user_by_email(db, form_data.username)  # ✅ Usando função do CRUD
+    user = crud.get_user_by_email(db, form_data.username)
     if not user or not crud.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Email ou senha incorretos")
     access_token = auth.create_access_token(data={"sub": str(user.id)})

@@ -7,8 +7,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from .database import get_db
-from . import models
+# CORREÇÃO: Mudar importações relativas para absolutas
+from database import get_db
+import models
 
 # Configurações de JWT
 SECRET_KEY = "supersecretkey"  # ideal usar variável de ambiente

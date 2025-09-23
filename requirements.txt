@@ -8,3 +8,4 @@ python-dotenv==1.0.1
 pydantic[email]
 python-multipart
 passlib[bcrypt]
+python-jose[cryptography]==3.3.0

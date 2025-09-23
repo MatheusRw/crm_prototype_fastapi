@@ -3,7 +3,7 @@ from sqlalchemy import select, desc
 from typing import Sequence, Optional
 from passlib.context import CryptContext
 
-from . import models, schemas
+import models, schemas
 
 # ----- Customers -----
 def create_customer(db: Session, data: schemas.CustomerCreate):
