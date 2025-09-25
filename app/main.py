@@ -7,7 +7,7 @@ from database import Base, engine, get_db
 
 # CORREÇÃO: Remover importações relativas, usar absolutas
 import auth
-from app.database_local import Base, engine, get_db
+ 
 import crud
 import schemas
 import models
