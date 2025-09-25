@@ -2,10 +2,12 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from fastapi.security import OAuth2PasswordRequestForm
+import models
+from database import Base, engine, get_db
 
 # CORREÇÃO: Remover importações relativas, usar absolutas
 import auth
-from database import Base, engine, get_db
+from app.database_local import Base, engine, get_db
 import crud
 import schemas
 import models
@@ -197,3 +199,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 @app.get("/me")
 def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
     return {"email": current_user.email, "id": current_user.id, "name": current_user.name}
+
+
+
+#------garantia banco nuvem -----
+ 
+@app.on_event("startup")
+def startup_event():
+    # Criar tabelas se não existirem
+    Base.metadata.create_all(bind=engine)
+    print("✅ Tabelas do PostgreSQL criadas/validadas")

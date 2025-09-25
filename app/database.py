@@ -1,23 +1,25 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from pydantic_settings import BaseSettings
-from functools import lru_cache
+from sqlalchemy.ext.declarative import declarative_base
 import os
 
-class Settings(BaseSettings):
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/crm")
+# Configuração para Cloud SQL
+def get_database_url():
+    # URL para Cloud SQL via Unix socket
+    return os.getenv(
+        "DATABASE_URL", 
+        "postgresql+psycopg2://postgres:senha123@/crm?host=/cloudsql/crm-matheus:southamerica-east1:crm-db"
+    )
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
+# Criar engine
+DATABASE_URL = get_database_url()
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_size=5,
+    max_overflow=10
+)
 
-@lru_cache
-def get_settings() -> Settings:
-    return Settings()
-
-settings = get_settings()
-
-engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Base(DeclarativeBase):

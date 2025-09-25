@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 # CORREÇÃO: Mudar importações relativas para absolutas
-from database import get_db
+from app.database_local import get_db
 import models
 
 # Configurações de JWT
