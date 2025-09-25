@@ -6,9 +6,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from typing import Optional
-
+from database import Base,SessionLocal,engine,get_db
 # CORREÇÃO: Mudar importações relativas para absolutas
-from app.database_local import get_db
 import models
 
 # Configurações de JWT

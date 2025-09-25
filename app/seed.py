@@ -2,8 +2,7 @@
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))  # adiciona a raiz
-
-from app.database_local import SessionLocal, Base, engine
+from database import Base,SessionLocal,engine
 from app import models
 
 # Cria tabelas

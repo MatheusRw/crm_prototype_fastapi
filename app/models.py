@@ -2,8 +2,7 @@ from sqlalchemy import Integer, String, DateTime, ForeignKey, Numeric, Enum, Tex
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 import enum
 
-from app.database_local import Base
-
+from database import Base
 
 class OpportunityStage(str, enum.Enum):
     new = "new"
