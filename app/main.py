@@ -202,16 +202,6 @@ def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
 
 
 
-#------garantia banco nuvem -----
- 
-@app.on_event("startup")
-def startup_event():
-    # Criar tabelas se não existirem
-    Base.metadata.create_all(bind=engine)
-    print("✅ Tabelas do PostgreSQL criadas/validadas")
-
-
-
 #criando a rota de registro para conseguir locar na nuvem
 @app.post("/register")
 def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
@@ -223,3 +213,15 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
         return {"message": "Usuário criado com sucesso", "user_id": user.id}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+#------garantia banco nuvem -----
+ 
+@app.on_event("startup")
+def startup_event():
+    # Criar tabelas se não existirem
+    Base.metadata.create_all(bind=engine)
+    print("✅ Tabelas do PostgreSQL criadas/validadas")
+
+
+
