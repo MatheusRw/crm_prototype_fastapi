@@ -1,0 +1,2 @@
+DB: crm-db
+senha: senha123

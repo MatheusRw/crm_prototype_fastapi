@@ -209,3 +209,17 @@ def startup_event():
     # Criar tabelas se não existirem
     Base.metadata.create_all(bind=engine)
     print("✅ Tabelas do PostgreSQL criadas/validadas")
+
+
+
+#criando a rota de registro para conseguir locar na nuvem
+@app.post("/register")
+def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
+    existing_user = crud.get_user_by_email(db, user_data.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email já registrado")
+    try:
+        user = crud.create_user(db, user_data)
+        return {"message": "Usuário criado com sucesso", "user_id": user.id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
