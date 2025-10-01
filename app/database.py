@@ -1,24 +1,35 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from sqlalchemy.ext.declarative import declarative_base
 import os
 
 # Configuração para Cloud SQL
 def get_database_url():
-    # URL para Cloud SQL via Unix socket
+    # Para desenvolvimento local, use SQLite
+    if os.getenv("ENVIRONMENT") == "development" or not os.getenv("DATABASE_URL"):
+        return "sqlite:///./app.db"
+    
+    # Para produção (Cloud SQL)
     return os.getenv(
         "DATABASE_URL", 
-        "postgresql+psycopg2://postgres:senha123@/crm?host=/cloudsql/crm-matheus:southamerica-east1:crm-db"
+        "postgresql+psycopg2://username:password@localhost/crm"
     )
 
 # Criar engine
 DATABASE_URL = get_database_url()
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10
-)
+
+# Configurações diferentes para SQLite vs PostgreSQL
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
+else:
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

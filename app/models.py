@@ -1,6 +1,7 @@
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Numeric, Enum, Text, Boolean, func
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 import enum
+from datetime import datetime  # ✅ IMPORTANTE: Adicionar este import
 
 from database import Base
 
@@ -20,7 +21,7 @@ class Customer(Base):
     email: Mapped[str | None] = mapped_column(String(150), unique=True, nullable=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     company: Mapped[str | None] = mapped_column(String(150), nullable=True)
-    created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # ✅ Corrigido
 
     interactions: Mapped[list["Interaction"]] = relationship(
         "Interaction", back_populates="customer", cascade="all, delete-orphan"
@@ -37,9 +38,9 @@ class Interaction(Base):
     customer_id: Mapped[int] = mapped_column(
         ForeignKey("customers.id", ondelete="CASCADE"), index=True, nullable=False
     )
-    type: Mapped[str] = mapped_column(String(50), nullable=False)  # call, meeting, email, whatsapp, etc.
+    type: Mapped[str] = mapped_column(String(50), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    occurred_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Corrigido
 
     customer: Mapped["Customer"] = relationship("Customer", back_populates="interactions")
 
@@ -59,8 +60,8 @@ class Opportunity(Base):
         index=True,
     )
     value: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
-    close_date: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # Corrigido
-    created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    close_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # ✅ Corrigido
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # ✅ Corrigido
 
     customer: Mapped["Customer"] = relationship("Customer", back_populates="opportunities")
 
@@ -71,4 +72,5 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)  # 🔹 usar Boolean explícito
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # ✅ Adicionado campo que está no schema
