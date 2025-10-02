@@ -1,62 +1,25 @@
-# app/auth.py
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
-from typing import Optional
-
-# ✅ CORREÇÃO: Imports absolutos com "app."
 from app.database import get_db
 from app import models
 
-# Configurações de JWT
-SECRET_KEY = "supersecretkey"  # ideal usar variável de ambiente
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+security = HTTPBearer()
 
-# Contexto de hash de senha (mantemos para compatibilidade, mas não usamos)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# OAuth2
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
-
-# ----- Utilitários de senha -----
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # ✅ CORREÇÃO: Comparação direta sem hash
-    return plain_password == hashed_password
-
-def get_password_hash(password: str) -> str:
-    # ✅ CORREÇÃO: Retorna a senha em texto puro
-    return password
-
-# ----- Criação de token -----
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-# ----- Obter usuário atual -----
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Credenciais inválidas",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    token = credentials.credentials
+    
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-        # Converter para int
-        user_id = int(user_id)
-    except (JWTError, ValueError) as e:
-        raise credentials_exception
-
-    # CORREÇÃO: Query correta para buscar usuário
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if user is None:
-        raise credentials_exception
-    return user
+        # Token simples: "user-token-1"
+        if token.startswith("user-token-"):
+            user_id = token.replace("user-token-", "")
+            user = db.query(models.User).filter(models.User.id == int(user_id)).first()
+            if user:
+                return user
+        
+        raise HTTPException(status_code=401, detail="Token inválido")
+    except:
+        raise HTTPException(status_code=401, detail="Token inválido")

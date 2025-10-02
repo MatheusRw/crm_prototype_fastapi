@@ -1,7 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime, date
 from typing import Optional
-
 from app.models import OpportunityStage
 
 # ----- Customers -----
@@ -70,21 +69,23 @@ class OpportunityOut(OpportunityBase):
 # ----- Users -----
 class UserBase(BaseModel):
     email: EmailStr
-    name: Optional[str] = None
+    # ✅ SEM campo name
 
 class UserCreate(UserBase):
     password: str
+    # ✅ SEM campo name
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    name: Optional[str] = None
     password: Optional[str] = None
+    # ✅ SEM campo name
 
 class UserOut(BaseModel):
     id: int
     email: str
-    name: Optional[str] = None
+    is_active: bool
     created_at: Optional[datetime] = None
+    # ✅ SEM campo name
 
     class Config:
         from_attributes = True

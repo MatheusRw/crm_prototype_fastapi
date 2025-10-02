@@ -2,7 +2,6 @@ from sqlalchemy import Integer, String, DateTime, ForeignKey, Numeric, Enum, Tex
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 import enum
 from datetime import datetime
-
 from app.database import Base
 
 class OpportunityStage(str, enum.Enum):
@@ -68,6 +67,6 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    name: Mapped[str | None] = mapped_column(String(150), nullable=True)  # ✅ CAMPO NAME ADICIONADO
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # ✅ SEM campo name - compatível com seu banco
