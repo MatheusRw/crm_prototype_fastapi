@@ -12,11 +12,11 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar código da aplicação
-COPY app/ .
+# ✅ CORREÇÃO: Copiar toda a estrutura do projeto
+COPY . .
+
+# ✅ CORREÇÃO: Comando correto - main.py está em app/
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 # Expor porta
 EXPOSE 8080
-
-# Comando de inicialização
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
