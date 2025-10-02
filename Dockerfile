@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# ✅ CORREÇÃO: Adicionar app ao PYTHONPATH
+# ✅ CORREÇÃO: PYTHONPATH para imports
 ENV PYTHONPATH=/app
 
 # Copiar requirements e instalar dependências Python

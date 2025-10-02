@@ -2,13 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from fastapi.security import OAuth2PasswordRequestForm
-from database import Base, engine, get_db
 
-# CORREÇÃO: Imports absolutos organizados
-import auth
-import crud
-import schemas
-import models
+# ✅ CORREÇÃO: Imports absolutos com "app."
+from app.database import Base, engine, get_db
+from app import auth, crud, schemas, models
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="CRM Simples", version="0.1.0")
