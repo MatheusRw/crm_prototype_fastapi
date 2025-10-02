@@ -190,6 +190,48 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
         return {"message": "Usuário criado com sucesso", "user_id": user.id}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+
+# Criando a rota de registro para conseguir logar na nuvem
+@app.post("/register")
+def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
+    existing_user = crud.get_user_by_email(db, user_data.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email já registrado")
+    try:
+        user = crud.create_user(db, user_data)
+        return {"message": "Usuário criado com sucesso", "user_id": user.id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# ✅ CORREÇÃO: Estas funções precisam estar FORA da função register (sem indentação)
+@app.post("/simple-register")
+def simple_register(email: str, password: str, name: str = "Usuário", db: Session = Depends(get_db)):
+    """Registro simples sem hash - APENAS PARA TESTES"""
+    existing_user = db.query(models.User).filter(models.User.email == email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email já registrado")
+    
+    user = models.User(
+        email=email,
+        hashed_password=password,  # Texto puro
+        name=name,
+        is_active=True
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"message": "Usuário criado com sucesso", "user_id": user.id}
+
+@app.post("/simple-login")
+def simple_login(email: str, password: str, db: Session = Depends(get_db)):
+    """Login simples sem hash - APENAS PARA TESTES"""
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user or user.hashed_password != password:
+        raise HTTPException(status_code=401, detail="Email ou senha incorretos")
+    
+    access_token = auth.create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # Garantia banco nuvem
 @app.on_event("startup")
