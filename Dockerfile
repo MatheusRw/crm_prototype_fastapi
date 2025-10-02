@@ -18,5 +18,6 @@ COPY . .
 # ✅ CORREÇÃO: Comando correto - main.py está em app/
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
+
 # Expor porta
 EXPOSE 8080
