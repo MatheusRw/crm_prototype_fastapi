@@ -1,9 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from fastapi.security import OAuth2PasswordRequestForm
 
-# ✅ CORREÇÃO: Imports absolutos com "app."
 from app.database import Base, engine, get_db
 from app import auth, crud, schemas, models
 from fastapi.middleware.cors import CORSMiddleware
@@ -165,67 +163,11 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     return
 
 # ============================================
-# AUTH
+# AUTH SIMPLIFICADA - APENAS 2 ROTAS ESSENCIAIS
 # ============================================
-@app.post("/token")
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = crud.get_user_by_email(db, form_data.username)
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Email ou senha incorretos")
-    access_token = auth.create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
-
-@app.get("/me")
-def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
-    return {"email": current_user.email, "id": current_user.id, "name": current_user.name}
-
-# Criando a rota de registro para conseguir logar na nuvem
-@app.post("/register")
-def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing_user = crud.get_user_by_email(db, user_data.email)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email já registrado")
-    try:
-        user = crud.create_user(db, user_data)
-        return {"message": "Usuário criado com sucesso", "user_id": user.id}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    
-
-# Criando a rota de registro para conseguir logar na nuvem
-@app.post("/register")
-def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing_user = crud.get_user_by_email(db, user_data.email)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email já registrado")
-    try:
-        user = crud.create_user(db, user_data)
-        return {"message": "Usuário criado com sucesso", "user_id": user.id}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-# ✅ CORREÇÃO: Estas funções precisam estar FORA da função register (sem indentação)
-@app.post("/simple-register")
-def simple_register(email: str, password: str, name: str = "Usuário", db: Session = Depends(get_db)):
-    """Registro simples sem hash - APENAS PARA TESTES"""
-    existing_user = db.query(models.User).filter(models.User.email == email).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email já registrado")
-    
-    user = models.User(
-        email=email,
-        hashed_password=password,  # Texto puro
-        name=name,
-        is_active=True
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return {"message": "Usuário criado com sucesso", "user_id": user.id}
-
-@app.post("/simple-login")
-def simple_login(email: str, password: str, db: Session = Depends(get_db)):
-    """Login simples sem hash - APENAS PARA TESTES"""
+@app.post("/login")
+def login_simple(email: str, password: str, db: Session = Depends(get_db)):
+    """Login SIMPLES para testes - sem hash complexo"""
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or user.hashed_password != password:
         raise HTTPException(status_code=401, detail="Email ou senha incorretos")
@@ -233,23 +175,31 @@ def simple_login(email: str, password: str, db: Session = Depends(get_db)):
     access_token = auth.create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
-
 @app.post("/create-test-user")
 def create_test_user(db: Session = Depends(get_db)):
-    """Cria um usuário de teste - APENAS PARA DEMONSTRAÇÃO"""
-    existing_user = db.query(models.User).filter(models.User.email == "mt.richaard@hotmail.com").first()
+    """Cria usuário de teste UMA VEZ - APENAS PARA DEMONSTRAÇÃO"""
+    existing_user = db.query(models.User).filter(models.User.email == "teste@crm.com").first()
     if existing_user:
         return {"message": "Usuário já existe", "user_id": existing_user.id}
     
     user = models.User(
-        email="mt.richaard@hotmail.com",
-        hashed_password="123456",  # Texto puro
+        email="teste@crm.com",
+        hashed_password="123456",
+        name="Usuário Teste CRM",  # ✅ NAME ADICIONADO
         is_active=True
     )
     db.add(user)
     db.commit()
     db.refresh(user)
-    return {"message": "Usuário de teste criado com sucesso", "user_id": user.id}
+    return {"message": "Usuário de teste criado", "user_id": user.id}
+
+@app.get("/me")
+def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
+    return {
+        "email": current_user.email, 
+        "id": current_user.id, 
+        "name": current_user.name  # ✅ NAME DISPONÍVEL
+    }
 
 # Garantia banco nuvem
 @app.on_event("startup")

@@ -2,7 +2,6 @@ from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime, date
 from typing import Optional
 
-# ✅ CORREÇÃO: Import absoluto
 from app.models import OpportunityStage
 
 # ----- Customers -----
@@ -49,7 +48,7 @@ class OpportunityBase(BaseModel):
     title: str
     stage: OpportunityStage = OpportunityStage.new
     value: Optional[float] = None
-    close_date: Optional[datetime] = None  # mantém datetime para consistência
+    close_date: Optional[datetime] = None
 
 class OpportunityCreate(OpportunityBase):
     pass
@@ -79,13 +78,13 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     name: Optional[str] = None
-    password: Optional[str] = None  # opcional para troca de senha
+    password: Optional[str] = None
 
 class UserOut(BaseModel):
     id: int
     email: str
     name: Optional[str] = None
-    created_at: Optional[datetime] = None  # só se existir no seu modelo
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

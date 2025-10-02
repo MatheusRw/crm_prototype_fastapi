@@ -1,9 +1,8 @@
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Numeric, Enum, Text, Boolean, func
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 import enum
-from datetime import datetime  # ✅ IMPORTANTE: Adicionar este import
+from datetime import datetime
 
-# ✅ CORREÇÃO: Import absoluto
 from app.database import Base
 
 class OpportunityStage(str, enum.Enum):
@@ -13,7 +12,6 @@ class OpportunityStage(str, enum.Enum):
     won = "won"
     lost = "lost"
 
-
 class Customer(Base):
     __tablename__ = "customers"
 
@@ -22,7 +20,7 @@ class Customer(Base):
     email: Mapped[str | None] = mapped_column(String(150), unique=True, nullable=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     company: Mapped[str | None] = mapped_column(String(150), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # ✅ Corrigido
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     interactions: Mapped[list["Interaction"]] = relationship(
         "Interaction", back_populates="customer", cascade="all, delete-orphan"
@@ -30,7 +28,6 @@ class Customer(Base):
     opportunities: Mapped[list["Opportunity"]] = relationship(
         "Opportunity", back_populates="customer", cascade="all, delete-orphan"
     )
-
 
 class Interaction(Base):
     __tablename__ = "interactions"
@@ -41,10 +38,9 @@ class Interaction(Base):
     )
     type: Mapped[str] = mapped_column(String(50), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)  # ✅ Corrigido
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     customer: Mapped["Customer"] = relationship("Customer", back_populates="interactions")
-
 
 class Opportunity(Base):
     __tablename__ = "opportunities"
@@ -61,11 +57,10 @@ class Opportunity(Base):
         index=True,
     )
     value: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
-    close_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # ✅ Corrigido
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # ✅ Corrigido
+    close_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     customer: Mapped["Customer"] = relationship("Customer", back_populates="opportunities")
-
 
 class User(Base):
     __tablename__ = "users"
@@ -73,5 +68,6 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str | None] = mapped_column(String(150), nullable=True)  # ✅ CAMPO NAME ADICIONADO
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())  # ✅ Adicionado campo que está no schema
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
