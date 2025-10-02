@@ -233,6 +233,24 @@ def simple_login(email: str, password: str, db: Session = Depends(get_db)):
     access_token = auth.create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+@app.post("/create-test-user")
+def create_test_user(db: Session = Depends(get_db)):
+    """Cria um usuário de teste - APENAS PARA DEMONSTRAÇÃO"""
+    existing_user = db.query(models.User).filter(models.User.email == "mt.richaard@hotmail.com").first()
+    if existing_user:
+        return {"message": "Usuário já existe", "user_id": existing_user.id}
+    
+    user = models.User(
+        email="mt.richaard@hotmail.com",
+        hashed_password="123456",  # Texto puro
+        is_active=True
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"message": "Usuário de teste criado com sucesso", "user_id": user.id}
+
 # Garantia banco nuvem
 @app.on_event("startup")
 def startup_event():
