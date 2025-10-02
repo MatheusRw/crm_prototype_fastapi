@@ -16,7 +16,7 @@ SECRET_KEY = "supersecretkey"  # ideal usar variável de ambiente
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-# Contexto de hash de senha
+# Contexto de hash de senha (mantemos para compatibilidade, mas não usamos)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2
@@ -24,10 +24,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 # ----- Utilitários de senha -----
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    # ✅ CORREÇÃO: Comparação direta sem hash
+    return plain_password == hashed_password
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    # ✅ CORREÇÃO: Retorna a senha em texto puro
+    return password
 
 # ----- Criação de token -----
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

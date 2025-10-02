@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select, desc
 from typing import Sequence, Optional
-from passlib.context import CryptContext
 
 # ✅ CORREÇÃO: Imports absolutos
 from app import models, schemas
@@ -111,18 +110,16 @@ def delete_opportunity(db: Session, opportunity_id: int) -> bool:
     return True
 
 # ----- Users -----
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 def create_user(db: Session, data: schemas.UserCreate):
     # Verificar se usuário já existe
     existing_user = db.query(models.User).filter(models.User.email == data.email).first()
     if existing_user:
         raise ValueError("Usuário com este email já existe")
     
-    hashed_password = pwd_context.hash(data.password)
+    # ✅ CORREÇÃO: Salva senha em texto puro (sem hash)
     user = models.User(
         email=data.email, 
-        hashed_password=hashed_password,
+        hashed_password=data.password,  # Texto puro
         name=data.name if hasattr(data, 'name') else None
     )
     db.add(user)
@@ -146,9 +143,9 @@ def update_user(db: Session, user_id: int, data: schemas.UserUpdate) -> Optional
 
     update_data = data.model_dump(exclude_unset=True)
     
-    # Se houver password no update, hash it
+    # Se houver password no update, salva em texto puro
     if 'password' in update_data and update_data['password']:
-        update_data['hashed_password'] = pwd_context.hash(update_data['password'])
+        update_data['hashed_password'] = update_data['password']  # Texto puro
         del update_data['password']
     
     for key, value in update_data.items():
@@ -168,4 +165,5 @@ def delete_user(db: Session, user_id: int) -> bool:
     return True
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    # ✅ CORREÇÃO: Comparação direta sem hash
+    return plain_password == hashed_password
