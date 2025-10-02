@@ -8,16 +8,18 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# ✅ CORREÇÃO: Adicionar app ao PYTHONPATH
+ENV PYTHONPATH=/app
+
 # Copiar requirements e instalar dependências Python
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ✅ CORREÇÃO: Copiar toda a estrutura do projeto
+# Copiar código da aplicação
 COPY . .
-
-# ✅ CORREÇÃO: Comando correto - main.py está em app/
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
-
 
 # Expor porta
 EXPOSE 8080
+
+# Comando de inicialização
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
