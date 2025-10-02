@@ -2,12 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from fastapi.security import OAuth2PasswordRequestForm
-import models
 from database import Base, engine, get_db
 
-# CORREÇÃO: Remover importações relativas, usar absolutas
+# CORREÇÃO: Imports absolutos organizados
 import auth
- 
 import crud
 import schemas
 import models
@@ -42,7 +40,6 @@ def create_customer(payload: schemas.CustomerCreate, db: Session = Depends(get_d
             raise HTTPException(status_code=400, detail="Email já cadastrado.")
     return crud.create_customer(db, payload)
 
-
 @app.get("/customers", response_model=List[schemas.CustomerOut])
 def list_customers(
     q: Optional[str] = Query(default=None, description="Busca por nome/email/empresa"),
@@ -52,7 +49,6 @@ def list_customers(
 ):
     return crud.list_customers(db, q=q, limit=limit, offset=offset)
 
-
 @app.get("/customers/{customer_id}", response_model=schemas.CustomerOut)
 def get_customer(customer_id: int, db: Session = Depends(get_db)):
     customer = crud.get_customer(db, customer_id)
@@ -60,14 +56,12 @@ def get_customer(customer_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return customer
 
-
 @app.put("/customers/{customer_id}", response_model=schemas.CustomerOut)
 def update_customer(customer_id: int, payload: schemas.CustomerUpdate, db: Session = Depends(get_db)):
     db_customer = crud.get_customer(db, customer_id)
     if not db_customer:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return crud.update_customer(db, customer_id, payload)
-
 
 @app.delete("/customers/{customer_id}", status_code=204)
 def delete_customer(customer_id: int, db: Session = Depends(get_db)):
@@ -85,13 +79,11 @@ def create_interaction(customer_id: int, payload: schemas.InteractionCreate, db:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return crud.create_interaction(db, customer_id, payload)
 
-
 @app.get("/customers/{customer_id}/interactions", response_model=List[schemas.InteractionOut])
 def list_interactions(customer_id: int, limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
     if not crud.get_customer(db, customer_id):
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return crud.list_interactions(db, customer_id, limit=limit, offset=offset)
-
 
 @app.delete("/interactions/{interaction_id}", status_code=204)
 def delete_interaction(interaction_id: int, db: Session = Depends(get_db)):
@@ -109,13 +101,11 @@ def create_opportunity(customer_id: int, payload: schemas.OpportunityCreate, db:
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return crud.create_opportunity(db, customer_id, payload)
 
-
 @app.get("/customers/{customer_id}/opportunities", response_model=List[schemas.OpportunityOut])
 def list_opportunities(customer_id: int, limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
     if not crud.get_customer(db, customer_id):
         raise HTTPException(status_code=404, detail="Cliente não encontrado")
     return crud.list_opportunities(db, customer_id, limit=limit, offset=offset)
-
 
 @app.get("/opportunities/{opportunity_id}", response_model=schemas.OpportunityOut)
 def get_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
@@ -124,11 +114,9 @@ def get_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Oportunidade não encontrada")
     return opp
 
-
 @app.get("/opportunities", response_model=List[schemas.OpportunityOut])
 def list_all_opportunities(limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
     return crud.list_all_opportunities(db, limit=limit, offset=offset)
-
 
 @app.put("/opportunities/{opportunity_id}", response_model=schemas.OpportunityOut)
 def update_opportunity(opportunity_id: int, payload: schemas.OpportunityUpdate, db: Session = Depends(get_db)):
@@ -136,7 +124,6 @@ def update_opportunity(opportunity_id: int, payload: schemas.OpportunityUpdate, 
     if not updated:
         raise HTTPException(status_code=404, detail="Oportunidade não encontrada")
     return updated
-
 
 @app.delete("/opportunities/{opportunity_id}", status_code=204)
 def delete_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
@@ -155,11 +142,9 @@ def create_user(payload: schemas.UserCreate, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
 @app.get("/users", response_model=List[schemas.UserOut])
 def list_users(limit: int = 100, offset: int = 0, db: Session = Depends(get_db)):
     return crud.list_users(db, limit=limit, offset=offset)
-
 
 @app.get("/users/{user_id}", response_model=schemas.UserOut)
 def get_user(user_id: int, db: Session = Depends(get_db)):
@@ -168,14 +153,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return user
 
-
 @app.put("/users/{user_id}", response_model=schemas.UserOut)
 def update_user(user_id: int, payload: schemas.UserUpdate, db: Session = Depends(get_db)):
     updated = crud.update_user(db, user_id, payload)
     if not updated:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return updated
-
 
 @app.delete("/users/{user_id}", status_code=204)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
@@ -190,19 +173,16 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
 @app.post("/token")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = crud.get_user_by_email(db, form_data.username)
-    if not user or not crud.verify_password(form_data.password, user.hashed_password):
+    if not user or not auth.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Email ou senha incorretos")
     access_token = auth.create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
-
 
 @app.get("/me")
 def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
     return {"email": current_user.email, "id": current_user.id, "name": current_user.name}
 
-
-
-#criando a rota de registro para conseguir locar na nuvem
+# Criando a rota de registro para conseguir logar na nuvem
 @app.post("/register")
 def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     existing_user = crud.get_user_by_email(db, user_data.email)
@@ -214,14 +194,9 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
-#------garantia banco nuvem -----
- 
+# Garantia banco nuvem
 @app.on_event("startup")
 def startup_event():
     # Criar tabelas se não existirem
     Base.metadata.create_all(bind=engine)
     print("✅ Tabelas do PostgreSQL criadas/validadas")
-
-
-
