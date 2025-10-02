@@ -3,7 +3,8 @@ from sqlalchemy.orm import relationship, Mapped, mapped_column
 import enum
 from datetime import datetime  # ✅ IMPORTANTE: Adicionar este import
 
-from database import Base
+# ✅ CORREÇÃO: Import absoluto
+from app.database import Base
 
 class OpportunityStage(str, enum.Enum):
     new = "new"

@@ -3,7 +3,8 @@ from sqlalchemy import select, desc
 from typing import Sequence, Optional
 from passlib.context import CryptContext
 
-import models, schemas
+# ✅ CORREÇÃO: Imports absolutos
+from app import models, schemas
 
 # ----- Customers -----
 def create_customer(db: Session, data: schemas.CustomerCreate):
